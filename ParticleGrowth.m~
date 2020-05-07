@@ -5,8 +5,6 @@
 
 % test
 
-%test 2
-
 I = imread('mouse_15-5.png');
 BW = im2bw(I);
 %dim = size(BW);
