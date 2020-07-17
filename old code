@@ -1,0 +1,34 @@
+% old code
+% n = 100; %number of points
+% R = 2; %radius
+% x0 = 0; % Center of the circle in the x direction.
+% y0 = 0; % Center of the circle in the y direction.
+% %Now create the set of points.
+% t = 2*pi*rand(n,1);
+% r = R*sqrt(rand(n,1));
+% x = x0 + r.*cos(t);
+% y = y0 + r.*sin(t);
+% 
+% 
+% %Now display our random set of points in a figure.
+% figure(1)
+% plot(x,y, '.', 'MarkerSize', 12)
+% hold on
+% %add circle outline
+% xcenter= 0;
+% ycenter= 0;
+% radius=2;
+% th=0:pi/50:2*pi;
+% xunit= radius*cos(th) +xcenter;
+% yunit = radius * sin(th) + ycenter;
+% plot(xunit, yunit)
+% axis equal;
+% grid on;
+% fontSize = 15;
+% xlabel('X', 'FontSize', fontSize);
+% ylabel('Y', 'FontSize', fontSize);
+% title('Random Locations Within a Circle', 'FontSize', fontSize);
+% 
+% 
+
+
