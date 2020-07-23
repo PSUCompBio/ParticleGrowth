@@ -1,0 +1,1 @@
+I = imread('mouse_15-5.png'); %read image

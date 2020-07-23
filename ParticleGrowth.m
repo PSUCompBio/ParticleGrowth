@@ -1,141 +1,73 @@
- clc %clear command window everytime code is run
-% Create a random set of coordinates in a circle.
-% First define parameters that define the number of points and the circle.
-n = 100; %number of points
-R = 2; %radius
-x0 = 0; % Center of the circle in the x direction.
-y0 = 0; % Center of the circle in the y direction.
-% Now create the set of points.
-t = 2*pi*rand(n,1);
-r = R*sqrt(rand(n,1));
-x = x0 + r.*cos(t);
-y = y0 + r.*sin(t);
-% Now display our random set of points in a figure.
+clc %clear command window everytime code is run
+IM=imread('mouse test.png'); %read image
+pixel_labels=colorsegment(IM) %segment
+
+%plots
+%plotting Color 1 (all the black)
+mask1 = pixel_labels==1;
+cluster1 = IM .* uint8(mask1);
+%imshow(cluster1);
+%title('Objects in Cluster 1');
+
+
+% %plotting Color 2 (Yellow Cartilage)
+mask2 = pixel_labels==2;
+cluster2 = IM .* uint8(mask2);
+%imshow(cluster2);
+%title('Objects in Cluster 2');
+
+%plotting Color 3(Brain Outline)
+mask3 = pixel_labels==3;
+cluster3 = IM .* uint8(mask3);
+%imshow(cluster3)
+%title('Objects in Cluster 3');
 figure(1)
-plot(x,y, '.', 'MarkerSize', 12)
-hold on
-%add circle outline
-xcenter= 0;
-ycenter= 0;
-radius=2;
-th=0:pi/50:2*pi;
-xunit= radius*cos(th) +xcenter;
-yunit = radius * sin(th) + ycenter;
-plot(xunit, yunit)
-axis equal;
-grid on;
-fontSize = 15;
-xlabel('X', 'FontSize', fontSize);
-ylabel('Y', 'FontSize', fontSize);
-title('Random Locations Within a Circle', 'FontSize', fontSize);
-
-
-na=8;
-tet=linspace(-pi,pi,na+1);
-xi=r*cos(tet)+x0;
-yi=r*sin(tet)+y0;
-for k=1:numel(xi);
-plot([x0 xi(k)],[y0 yi(k)]);
-hold on
-end
-
+montage({cluster1, cluster2, cluster3})
+print('segmentedimages', '-dpng')
  
-X= [x  y]' %making matrix to deform
-landmarks =[ 2 4 6 8 ];
-%X(2*landmarks(1)-1)
-%X(2*landmarks(1)+0)
-for i=1:length(landmarks)
-    X(2*landmarks(i)-1);
-    X(2*landmarks(i)-0);
+[rows cols]=find(pixel_labels==3); %extract blue
+boundary1=boundary(rows, cols); %extract blue boundary
+
+%mesh formation-stl file
+p = [rows(boundary1), cols(boundary1)];
+%plot(p(:,1),p(:,2))
+dt = delaunayTriangulation(p(:,1),p(:,2));
+ic = incenter(dt) ;
+tr = triangulation(dt.ConnectivityList, dt.Points);
+%figure(2)
+%triplot(tr)
+%hold on
+%plot(ic(:,1),ic(:,2),'*r')
+stlwrite(tr, 'try.stl')
+
+
+%make mesh
+model=createpde;
+importGeometry(model, 'try.stl');
+mesh_default=generateMesh(model);
+figure (3)
+q=pdeplot(mesh_default,'ElementLabels','on')
+set(q,'color','red');
+
+
+
+meshelements=[mesh_default.Elements]';
+ 
+for i=1:length(meshelements)
+     nodes=meshelements(:,1:3)';
+     points=mesh_default.Nodes(1:2,nodes); 
 end
+ 
 
-%want to divide up into different subsections based on location in the
-%circle then apply different F to them
+xpoints=points(1,:);
+xpoints=reshape(xpoints,[3,567]); %each column is x points of triangle
+ypoints=points(2,:);
+ypoints=reshape(ypoints,[3,567]); %each column is y points of triangle
 
-%first attempt
-%t=0
-%lambda1=[1 0; 0 1]; %setting lambda as 1, semi colon to not show up in command
-% x1= X * lambda1;
-%t>0
-% lambda2=[1.1 0; 0 1.1]; %setting lambda 2 as 1.1
-% x2= X * lambda2; %creating deformed coordinates with lambda 1.1 
-p0d= 3.9;
-e17p5= 3.4;
-nsteps = 10;
-expansion_growth_ratio = p0d/e17p5;
-Dlambda= expansion_growth_ratio/nsteps;
-lambda=0;
-figure(1)%plot figures 2-11 (figure 1 is original)
-sz=25 ;%small original points
-szz=50 ;%big deformed points
-for i=1:n 
-    colorred = 0;
-    % if point is in landmarks, color red
-     for j=1:length(landmarks)
-         if i == landmarks(j) 
-             % point i is a landmark
-             colorred = 1;
-         end
-     end
-     if colorred == 0
-         scatter(X(1,i),X(2,i),sz,'black','filled','d')
-     end
-     if colorred == 1
-         scatter(X(1,i),X(2,i),sz,'red','filled','d')
-     end
-     hold on
-end
+coordinates=center(xpoints, ypoints) %center points
 
-for c=1:nsteps %loop for 10 steps
-    lambda=lambda+Dlambda; %setting lamba at steps greater than 1
-    
-    for i= 1:n 
-        landmark_flag = 0;
-        % if point is in landmarks, scale lambda
-        for j=1:length(landmarks)
-            if i == landmarks(j) 
-               % point i is a landmark
-                landmark_flag = 1;
-            end
-        end
-        if landmark_flag == 1
-            local_lambda = lambda*.1;
-        else 
-            local_lambda = lambda;
-        end
-         
-        Fgrowth=[1+ local_lambda 0; 0 1 + local_lambda];
-        Fmechanics=[1 0; 0 1]; %F as matrix with lambda
-        Ftotal=Fgrowth * Fmechanics;
-        output(:,i)= Ftotal * X(:,i); %deform original points with F when lambda is value
-       % i
-       % X(:,i)
-    end
-    
-    
-%     lambda=lambda+Dlambda; %setting lamba at steps greater than 1
-%     Fgrowth=[1+ lambda 0; 0 1 + lambda];
-%     Fmechanics=[1 0; 0 1]; %F as matrix with lambda
-%     Ftotal=Fgrowth * Fmechanics;
-%     output= Ftotal * X; %deform original points with F when lambda is value
-   
-    for i=1:n 
-        colorred = 0;
-        % if point is in landmarks, color red
-         for j=1:length(landmarks)
-             if i == landmarks(j) 
-                 % point i is a landmark
-                 colorred = 1;
-             end
-         end
-         if colorred == 0
-            scatter(output(1,i), output(2,i), szz, 'black', 'filled') %scatter deformed points
-         end
-         if colorred == 1
-             scatter(output(1,i), output(2,i), szz, 'red', 'filled') %scatter deformed points
-         end
-         hold on
-    end
-   
-end
+landmarkloop(coordinates) %function that does everything pulling landmarks and plotting
 
+% materialmap(coordinates)
+% 
+ deformandplot(coordinates)
