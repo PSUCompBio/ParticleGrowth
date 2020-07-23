@@ -1,10 +1,8 @@
 clc %clear command window everytime code is run
+IM=imread('mouse test.png'); %read image
+pixel_labels=colorsegment(IM) %segment
 
-%read image
-IM=imread('mouse test.png');
-
-pixel_labels=colorsegment(IM)
-
+%plots
 %plotting Color 1 (all the black)
 mask1 = pixel_labels==1;
 cluster1 = IM .* uint8(mask1);
@@ -25,15 +23,10 @@ cluster3 = IM .* uint8(mask3);
 %title('Objects in Cluster 3');
 figure(1)
 montage({cluster1, cluster2, cluster3})
+print('segmentedimages', '-dpng')
  
-
-%extract colors
-[rows cols]=find(pixel_labels==3);
-%figure(2)
-%scatter(rows, cols)
-boundary1=boundary(rows, cols);
-%%plot(rows(boundary1), cols(boundary1))
-
+[rows cols]=find(pixel_labels==3); %extract blue
+boundary1=boundary(rows, cols); %extract blue boundary
 
 %mesh formation-stl file
 p = [rows(boundary1), cols(boundary1)];
@@ -71,145 +64,10 @@ xpoints=reshape(xpoints,[3,567]); %each column is x points of triangle
 ypoints=points(2,:);
 ypoints=reshape(ypoints,[3,567]); %each column is y points of triangle
 
-coordinates=center(xpoints, ypoints)
+coordinates=center(xpoints, ypoints) %center points
 
+landmarkloop(coordinates) %function that does everything pulling landmarks and plotting
 
-%landmarking
-landmarks =[ 191 141 163 167 ]; %setting up framework to pull landmarks
-for b=1:length(landmarks)
-      coordinates(2*landmarks(b)-1)
-      coordinates(2*landmarks(b)-0)
-end
- 
-
-for c=1:size(coordinates,2)
-    colorred = 0;
-    % if point is in landmarks, color red
-     for j=1:length(landmarks)
-         if c == landmarks(j) 
-             % point i is a landmark
-             colorred = 1;
-         end
-     end
-       if colorred == 0
-         figure(6)
-         %scatter(coordinates(1,c),coordinates(2,c),'black','filled','d')
-     end
-     if colorred == 1
-         figure(6)
-         scatter(coordinates(1,c),coordinates(2,c),'red','filled','d')
-         hold on
-     end
-         for m=1:length(landmarks)
-             if colorred==1
-                 r=30
-             plotcircle(coordinates(1,c), coordinates(2,c),r) 
-             end
-         end
-     hold on
-end
-
+% materialmap(coordinates)
 % 
-% %material map
-% 
-% %pulling random half
-% 
-% ncol = 284
-% material2 = randperm(size(coordinates,2),ncol); %creates random matrix of column locations
-% 
-% for a=1:length(material2)
-%       coordinates(2*material2(a)-1)
-%       coordinates(2*material2(a)-0)
-% end
-% 
-% 
-% %plotting materials
-% 
-% % for d=1:size(coordinates,2)
-% %     colorred = 0;
-% %     % if point is in material2, color red
-% %      for e=1:length(material2)
-% %          if d == material2(e) 
-% %              % point d is a landmark
-% %              colorred = 1;
-% %          end
-% %      end
-% %        if colorred == 0
-% %          figure(7)
-% %          %scatter(coordinates(1,d),coordinates(2,d),'black','filled','d')
-% %      end
-% %      if colorred == 1
-% %          figure(7)
-% %          %scatter(coordinates(1,d),coordinates(2,d),'red','filled','d')
-% %      end
-% %      hold on
-% % end
-% 
-
-e175d= 5.1; %used very rough estimates from images for now
-e155d= 4;
-nsteps = 1; 
-expansion_growth_ratio = e175d/e155d;
-Dlambda= expansion_growth_ratio/nsteps;
-lambda=0;
-
-
-for g=0:nsteps
-    lambdanew=0;
-    g
-     if g>0
-        lambdanew=lambda+Dlambda
-     end
-    for h=1:size(coordinates,2)
-        landmark_flag = 0;
-        %         %if point is in landmarks, scale lambda
-        for i=1:length(landmarks)
-            if  h== landmarks(i)
-                %                %point h is a landmark
-                landmark_flag = 1;
-            end
-        end
-        if landmark_flag == 1
-            z=.1;
-            local_lambda = lambdanew*z;
-        else
-            local_lambda = lambdanew;
-        end
-        Fgrowth=[1+ local_lambda 0; 0 1 + local_lambda];
-        Fmechanics=[1 0; 0 1]; %F as matrix with lambda
-        Ftotal=Fgrowth * Fmechanics;
-        displacement(:,h)= (Ftotal * coordinates(:,h)) - coordinates(:,h); %deform original points with F when lambda is value
-        
-    end
-    %plot the step
-    %write a plot, insert code, function?
-    for k=1:size(coordinates,2)
-        colorred = 0;
-        % if point is in landmarks, color red
-        for l=1:length(landmarks)
-            if k == landmarks(l)
-                % point i is a landmark
-                colorred = 1;
-            end
-        end
-        if colorred == 0
-            figure(8)
-            %scatter(coordinates(1,k) + displacement(1,k), coordinates(2,k) + displacement(2,k), 'black') %scatter deformed point
-        end
-        if colorred == 1
-            figure (8)
-            scatter(coordinates(1,k) +displacement(1,k), coordinates(2,k) + displacement(2,k), 'red', 'filled') %scatter deformed points
-        end
-        hold on
-        for n=1:length(landmarks)
-            if colorred==1
-                plotcircle(coordinates(1,k), coordinates(2,k),r)
-                hold on
-                plotcircle(coordinates(1,k)+displacement(1,k), coordinates(2,k) +displacement(2,k), r)
-            end
-        end
-    end
- end
-
-    
-
+ deformandplot(coordinates)
