@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<VTKFile type="UnstructuredGrid" version="0.1" byte_order="LittleEndian">
+	<UnstructuredGrid>
+		<Piece NumberOfPoints="2" NumberOfCells="0">
+			<Points>
+				<DataArray type="Float64" NumberOfComponents="2" format="ascii">
+					2.143941e+01 -4.302964e+01
+					-6.026644e+01 3.265058e+01
+				</DataArray>
+			</Points>
+		</Piece>
+	</UnstructuredGrid>
+</VTKFile>

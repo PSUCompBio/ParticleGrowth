@@ -1,4 +1,5 @@
 function deform=deformandplot(coordinates)
+
 landmarks =[ 191 141 163 167 ]; %setting up framework to pull landmarks
 for b=1:length(landmarks)
       coordinates(2*landmarks(b)-1)
@@ -57,14 +58,14 @@ for g=0:nsteps
         else
             local_lambda = lambdanew;
         end
-        Fgrowth=[1+ local_lambda(1,1) 0; 0 1 + local_lambda(2,2)];
+        Fgrowth=[1+ local_lambda(1,1) 1; 0 1 + local_lambda(2,2)];
         Fmechanics=[1 0; 0 1]; %F as matrix with lambda
         Ftotal=Fgrowth * Fmechanics;
         displacement(:,h)= (Ftotal * coordinates(:,h)) - coordinates(:,h); %deform original points with F when lambda is value
         
     end
     %plot the step
-    %write a plot, insert code, function?
+    %write a plot, insert code, function? %seperate plot out
     for k=1:size(coordinates,2)
         colorred = 0;
         % if point is in landmarks, color red
@@ -88,7 +89,7 @@ for g=0:nsteps
                 plotcircle(coordinates(1,k), coordinates(2,k),r)
                 hold on
                 plotcircle(coordinates(1,k)+displacement(1,k), coordinates(2,k) +displacement(2,k), r)
-            end
+                end
         end
     end
 end
